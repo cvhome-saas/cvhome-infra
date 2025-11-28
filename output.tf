@@ -7,13 +7,11 @@ output "core-auth_url" {
   description = "Auth Ui URL"
 }
 output "pod_store_urls" {
-  description = "Store URLs for all pods"
+  description = "Store URLs for default pods"
   value = {
-    for pod_key, pod in module.store-pod : pod_key => {
-      org1_store1 = "https://org1-store1.${pod.domain}"
-      org1_store2 = "https://org1-store2.${pod.domain}"
-      org2_store1 = "https://org2-store1.${pod.domain}"
-      org2_store2 = "https://org2-store2.${pod.domain}"
-    }
+    org1_store1 = "https://org1-store1.${module.store-pod.domain}"
+    org1_store2 = "https://org1-store2.${module.store-pod.domain}"
+    org2_store1 = "https://org2-store1.${module.store-pod.domain}"
+    org2_store2 = "https://org2-store2.${module.store-pod.domain}"
   }
 }
