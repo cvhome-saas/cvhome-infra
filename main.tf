@@ -25,7 +25,7 @@ locals {
     for i in range(local.pod_count) : "pod-${i + 1}" => {
       index        = i
       id           = tostring(i + 1)
-      name         = "pod-${i}"
+      name         = "pod-${i + 1}"
       org          = ""
       endpoint     = "https://store-pod-saas-gateway-${i + 1}.${data.aws_route53_zone.domain_zone.name}"
       namespace    = "store-pod-${i + 1}.${var.project}.lcl"
