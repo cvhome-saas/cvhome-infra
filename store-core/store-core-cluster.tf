@@ -1,12 +1,4 @@
 locals {
-  default_capacity_provider = {
-    FARGATE = {
-      weight = 50
-    }
-    FARGATE_SPOT = {
-      weight = 50
-    }
-  }
   pods_env = flatten([
     for key, value in var.pods : [
       { name : "COM_ASREVO_CVHOME_PODS[${value.index}]_ID_ID", value : value.id },
@@ -258,7 +250,6 @@ locals {
 module "store-core-cluster" {
   source                             = "terraform-aws-modules/ecs/aws"
   cluster_name                       = "${local.module_name}-${var.project}-${var.env}"
-  default_capacity_provider_strategy = local.default_capacity_provider
   tags                               = var.tags
 }
 
