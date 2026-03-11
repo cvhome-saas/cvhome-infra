@@ -2,9 +2,9 @@ output "store_ui_url" {
   value       = module.store-core.seller_ui_url
   description = "Store Ui URL"
 }
-output "core-auth_url" {
-  value       = module.store-core.core-auth_url
-  description = "Auth Ui URL"
+output "uaa_url" {
+  value       = module.store-core.uaa_url
+  description = "Uaa Ui URL"
 }
 output "pod_store_urls" {
   description = "Store URLs for default pods"
