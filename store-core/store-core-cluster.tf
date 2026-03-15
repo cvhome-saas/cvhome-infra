@@ -49,7 +49,7 @@ locals {
       valueFrom = "${data.aws_secretsmanager_secret.kc.arn}:KEYCLOAK_ADMIN_PASSWORD::"
     },
     {
-      name : "KC_DB_PASSWORD",
+      name : "SPRING_DATASOURCE_PASSWORD",
       valueFrom = "${module.store-core-db.db_instance_master_user_secret_arn}:password::"
     }
 
