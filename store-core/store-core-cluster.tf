@@ -25,16 +25,19 @@ locals {
     { "name" : "COM_ASREVO_CVHOME_SERVICES_STORE_NAMESPACE", "value" : "store-pod-1.${var.project}.lcl" },
   ]
   uaa_env = [
-    { "name" : "KC_HTTP_PORT", "value" : "8001" },
-    { "name" : "KC_HTTP_ENABLED", "value" : "true" },
-    { "name" : "KC_HTTP_MANAGEMENT_PORT", "value" : "9000" },
-    { "name" : "KC_HEALTH_ENABLED", "value" : "true" },
-    { "name" : "KC_HOSTNAME_STRICT_HTTPS", "value" : "false" },
-    { "name" : "KC_DB", "value" : "postgres" },
-    { "name" : "KC_DB_URL_DATABASE", "value" : module.store-core-db.db_instance_name },
-    { "name" : "KC_DB_URL_HOST", "value" : module.store-core-db.db_instance_address },
-    { "name" : "KC_DB_URL_PORT", "value" : module.store-core-db.db_instance_port },
-    { "name" : "KC_DB_USERNAME", "value" : module.store-core-db.db_instance_username },
+    { "name" : "SPRING_PROFILES_ACTIVE", "value" : "fargate" },
+    { "name" : "OTEL_EXPORTER_OTLP_ENDPOINT", "value" : "http://otel-collector.${var.namespace}:4318" },
+    { "name" : "OTEL_SDK_DISABLED", "value" : !var.is_monitoring },
+    { "name" : "COM_ASREVO_CVHOME_APP_DOMAIN", "value" : var.domain },
+    { "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE", "value" : var.namespace },
+    {      "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE-ID",
+      "value" : aws_service_discovery_private_dns_namespace.cluster_namespace.id
+    },
+
+    { "name" : "SPRING_DATASOURCE_DATABASE", "value" : module.store-core-db.db_instance_name },
+    { "name" : "SPRING_DATASOURCE_HOST", "value" : module.store-core-db.db_instance_address },
+    { "name" : "SPRING_DATASOURCE_PORT", "value" : module.store-core-db.db_instance_port },
+    { "name" : "SPRING_DATASOURCE_USERNAME", "value" : module.store-core-db.db_instance_username },
   ]
   uaa_secret = [
     {
