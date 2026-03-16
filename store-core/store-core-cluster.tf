@@ -29,8 +29,6 @@ locals {
     { "name" : "OTEL_EXPORTER_OTLP_ENDPOINT", "value" : "http://otel-collector.${var.namespace}:4318" },
     { "name" : "OTEL_SDK_DISABLED", "value" : !var.is_monitoring },
     { "name" : "COM_ASREVO_CVHOME_APP_DOMAIN", "value" : var.domain },
-    { "name" : "COM_ASREVO_CVHOME_SERVICES_UAA_SCHEMA", "value" : "https" },
-    { "name" : "COM_ASREVO_CVHOME_SERVICES_UAA_PORT", "value" : "443" },
     { "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE", "value" : var.namespace },
     {      "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE-ID",
       "value" : aws_service_discovery_private_dns_namespace.cluster_namespace.id
