@@ -186,8 +186,8 @@ locals {
       main_container              = "uaa"
       main_container_port         = 8001
       health_check = {
-        path                = "/health"
-        port                = 9000
+        path                = "/actuator/health"
+        port                = 8001
         healthy_threshold   = 2
         interval            = 60
         unhealthy_threshold = 3
