@@ -112,9 +112,9 @@ module "cluster-lb" {
 
       health_check = {
         enabled             = true
-        interval            = 150
-        path                = "/health"
-        port                = 9000
+        interval            = 45
+        path                = "/actuator/health"
+        port                = 8001
         healthy_threshold   = 2
         unhealthy_threshold = 5
         timeout             = 5
