@@ -15,8 +15,8 @@ locals {
     { "name" : "COM_ASREVO_CVHOME_APP_DOMAIN", "value" : var.domain },
     { "name" : "COM_ASREVO_CVHOME_SERVICES_STORE-POD-GATEWAY_SCHEMA", "value" : "https" },
     { "name" : "COM_ASREVO_CVHOME_SERVICES_STORE-POD-GATEWAY_PORT", "value" : "443" },
-    { "name" : "COM_ASREVO_CVHOME_SERVICES_CORE-AUTH_SCHEMA", "value" : "https" },
-    { "name" : "COM_ASREVO_CVHOME_SERVICES_CORE-AUTH_PORT", "value" : "443" },
+    { "name" : "COM_ASREVO_CVHOME_SERVICES_UAA_SCHEMA", "value" : "https" },
+    { "name" : "COM_ASREVO_CVHOME_SERVICES_UAA_PORT", "value" : "443" },
     { "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE", "value" : var.namespace },
     {
       "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE-ID",
@@ -24,19 +24,22 @@ locals {
     },
     { "name" : "COM_ASREVO_CVHOME_SERVICES_STORE_NAMESPACE", "value" : "store-pod-1.${var.project}.lcl" },
   ]
-  core-auth_env = [
-    { "name" : "KC_HTTP_PORT", "value" : "8001" },
-    { "name" : "KC_HTTP_ENABLED", "value" : "true" },
-    { "name" : "KC_HTTP_MANAGEMENT_PORT", "value" : "9000" },
-    { "name" : "KC_HEALTH_ENABLED", "value" : "true" },
-    { "name" : "KC_HOSTNAME_STRICT_HTTPS", "value" : "false" },
-    { "name" : "KC_DB", "value" : "postgres" },
-    { "name" : "KC_DB_URL_DATABASE", "value" : module.store-core-db.db_instance_name },
-    { "name" : "KC_DB_URL_HOST", "value" : module.store-core-db.db_instance_address },
-    { "name" : "KC_DB_URL_PORT", "value" : module.store-core-db.db_instance_port },
-    { "name" : "KC_DB_USERNAME", "value" : module.store-core-db.db_instance_username },
+  uaa_env = [
+    { "name" : "SPRING_PROFILES_ACTIVE", "value" : "fargate" },
+    { "name" : "OTEL_EXPORTER_OTLP_ENDPOINT", "value" : "http://otel-collector.${var.namespace}:4318" },
+    { "name" : "OTEL_SDK_DISABLED", "value" : !var.is_monitoring },
+    { "name" : "COM_ASREVO_CVHOME_APP_DOMAIN", "value" : var.domain },
+    { "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE", "value" : var.namespace },
+    {      "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE-ID",
+      "value" : aws_service_discovery_private_dns_namespace.cluster_namespace.id
+    },
+
+    { "name" : "SPRING_DATASOURCE_DATABASE", "value" : module.store-core-db.db_instance_name },
+    { "name" : "SPRING_DATASOURCE_HOST", "value" : module.store-core-db.db_instance_address },
+    { "name" : "SPRING_DATASOURCE_PORT", "value" : module.store-core-db.db_instance_port },
+    { "name" : "SPRING_DATASOURCE_USERNAME", "value" : module.store-core-db.db_instance_username },
   ]
-  core-auth_secret = [
+  uaa_secret = [
     {
       name      = "KEYCLOAK_ADMIN"
       valueFrom = "${data.aws_secretsmanager_secret.kc.arn}:KEYCLOAK_ADMIN::"
@@ -46,7 +49,7 @@ locals {
       valueFrom = "${data.aws_secretsmanager_secret.kc.arn}:KEYCLOAK_ADMIN_PASSWORD::"
     },
     {
-      name : "KC_DB_PASSWORD",
+      name : "SPRING_DATASOURCE_PASSWORD",
       valueFrom = "${module.store-core-db.db_instance_master_user_secret_arn}:password::"
     }
 
@@ -58,8 +61,8 @@ locals {
     { "name" : "COM_ASREVO_CVHOME_APP_DOMAIN", "value" : var.domain },
     { "name" : "COM_ASREVO_CVHOME_SERVICES_STORE-POD-GATEWAY_SCHEMA", "value" : "https" },
     { "name" : "COM_ASREVO_CVHOME_SERVICES_STORE-POD-GATEWAY_PORT", "value" : "443" },
-    { "name" : "COM_ASREVO_CVHOME_SERVICES_CORE-AUTH_SCHEMA", "value" : "https" },
-    { "name" : "COM_ASREVO_CVHOME_SERVICES_CORE-AUTH_PORT", "value" : "443" },
+    { "name" : "COM_ASREVO_CVHOME_SERVICES_UAA_SCHEMA", "value" : "https" },
+    { "name" : "COM_ASREVO_CVHOME_SERVICES_UAA_PORT", "value" : "443" },
     { "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE", "value" : var.namespace },
     {
       "name" : "SPRING_CLOUD_ECS_DISCOVERY_NAMESPACE-ID",
@@ -164,14 +167,14 @@ locals {
         }
       }
     }
-    "core-auth" = {
+    "uaa" = {
       public       = true
       priority     = 100
       service_type = "SERVICE"
       loadbalancer_target_groups = {
-        "core-auth-tg" : {
-          loadbalancer_target_groups_arn = module.cluster-lb.target_groups["core-auth-tg"].arn
-          main_container                 = "core-auth"
+        "uaa-tg" : {
+          loadbalancer_target_groups_arn = module.cluster-lb.target_groups["uaa-tg"].arn
+          main_container                 = "uaa"
           main_container_port            = 8001
         }
       }
@@ -180,21 +183,21 @@ locals {
       desired                     = 1
       cpu                         = 512
       memory                      = 1024
-      main_container              = "core-auth"
+      main_container              = "uaa"
       main_container_port         = 8001
       health_check = {
-        path                = "/health"
-        port                = 9000
+        path                = "/actuator/health"
+        port                = 8001
         healthy_threshold   = 2
         interval            = 60
         unhealthy_threshold = 3
       }
 
       containers = {
-        "core-auth" = {
-          image = "${var.docker_registry}/store-core/core-auth:${var.image_tag}"
-          environment : local.core-auth_env
-          secrets : local.core-auth_secret
+        "uaa" = {
+          image = "${var.docker_registry}/store-core/uaa:${var.image_tag}"
+          environment : local.uaa_env
+          secrets : local.uaa_secret
           portMappings : [
             {
               name : "app",

@@ -64,19 +64,19 @@ module "cluster-lb" {
         status_code  = "404"
       }
       rules = {
-        core-auth-forward = {
+        uaa-forward = {
           priority = 1
           actions = [
             {
               forward = {
-                target_group_key = "core-auth-tg"
+                target_group_key = "uaa-tg"
               }
             }
           ]
           conditions = [
             {
               host_header = {
-                values = ["core-auth.${var.domain}"]
+                values = ["uaa.${var.domain}"]
               }
             }
           ]
@@ -103,7 +103,7 @@ module "cluster-lb" {
   }
 
   target_groups = {
-    core-auth-tg = {
+    uaa-tg = {
       create_attachment = false
       name_prefix       = "c-a"
       protocol          = "HTTP"
@@ -112,9 +112,9 @@ module "cluster-lb" {
 
       health_check = {
         enabled             = true
-        interval            = 150
-        path                = "/health"
-        port                = 9000
+        interval            = 45
+        path                = "/actuator/health"
+        port                = 8001
         healthy_threshold   = 2
         unhealthy_threshold = 5
         timeout             = 5
@@ -181,7 +181,7 @@ module "www-record" {
   ]
 }
 
-module "core-auth-record" {
+module "uaa-record" {
   source  = "terraform-aws-modules/route53/aws//modules/records"
   version = "~> 3.0"
 
@@ -189,7 +189,7 @@ module "core-auth-record" {
 
   records = [
     {
-      name = "core-auth"
+      name = "uaa"
       type = "A"
       alias = {
         name    = module.cluster-lb.dns_name
