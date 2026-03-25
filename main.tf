@@ -44,11 +44,11 @@ locals {
       index             = i + 1
       id                = local.extra_pods_id["pod-${i + 2}"].id
       shorten_pod_id    = local.extra_pods_id["pod-${i + 2}"].shorten_id
-      pod_record_prefix = "spg-" + local.extra_pods_id["pod-${i + 2}"].shorten_id
-      name              = "pod-" + local.extra_pods_id["pod-${i + 2}"].shorten_id
+      pod_record_prefix = "spg-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}"
+      name              = "pod-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}"
       org               = ""
-      endpoint          = "https://spg-" + local.extra_pods_id["pod-${i + 2}"].shorten_id + ".${data.aws_route53_zone.domain_zone.name}"
-      namespace         = "store-pod-" + local.extra_pods_id["pod-${i + 2}"].shorten_id + ".${var.project}.lcl"
+      endpoint          = "https://spg-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}.${data.aws_route53_zone.domain_zone.name}"
+      namespace         = "store-pod-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}.${var.project}.lcl"
       size              = local.pod_size
       endpointType      = "EXTERNAL"
     }
