@@ -2,11 +2,6 @@ provider "aws" {
   region = var.region
 }
 
-resource "random_id" "pod_id" {
-  for_each    = { for i in range(local.pod_count) : "pod-${i + 2}" => i }
-  byte_length = 12
-}
-
 data "aws_caller_identity" "current" {}
 
 data "aws_route53_zone" "domain_zone" {
@@ -16,6 +11,11 @@ data "aws_route53_zone" "domain_zone" {
 data "aws_acm_certificate" "certificate" {
   domain   = data.aws_route53_zone.domain_zone.name
   statuses = ["ISSUED"]
+}
+
+resource "random_id" "pod_id" {
+  for_each    = { for i in range(local.pod_count) : "pod-${i + 2}" => i }
+  byte_length = 12
 }
 
 locals {
@@ -46,7 +46,6 @@ locals {
       shorten_pod_id    = local.extra_pods_id["pod-${i + 2}"].shorten_id
       pod_record_prefix = "spg-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}"
       name              = "pod-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}"
-      org               = ""
       endpoint          = "https://spg-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}.${data.aws_route53_zone.domain_zone.name}"
       namespace         = "store-pod-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}.${var.project}.lcl"
       size              = local.pod_size
@@ -59,7 +58,6 @@ locals {
     shorten_pod_id    = local.default_pods_id["pod-1"].shorten_id
     pod_record_prefix = "spg-${local.default_pods_id["pod-1"].shorten_id}"
     name              = "pod-${local.default_pods_id["pod-1"].shorten_id}"
-    org               = ""
     endpoint          = "https://spg-${local.default_pods_id["pod-1"].shorten_id}.${data.aws_route53_zone.domain_zone.name}"
     namespace         = "store-pod-${local.default_pods_id["pod-1"].shorten_id}.${var.project}.lcl"
     size              = local.pod_size
