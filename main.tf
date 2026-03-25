@@ -28,25 +28,29 @@ locals {
   docker_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.project}"
   extra_pods = {
     for i in range(local.pod_count) : "pod-${i + 2}" => {
-      index        = i + 1
-      id           = random_id.pod_id["pod-${i + 2}"].hex
-      name         = "pod-${i + 2}"
-      org          = ""
-      endpoint     = "https://store-pod-saas-gateway-${i + 2}.${data.aws_route53_zone.domain_zone.name}"
-      namespace    = "store-pod-${i + 2}.${var.project}.lcl"
-      size         = local.pod_size
-      endpointType = "EXTERNAL"
+      index             = i + 1
+      id                = random_id.pod_id["pod-${i + 2}"].hex
+      shorten_pod_id    = substr(random_id.pod_id["pod-${i + 2}"].hex, 0, 15)
+      pod_record_prefix = "spg-${substr(random_id.pod_id["pod-${i + 2}"].hex, 0, 15)}"
+      name              = "pod-${i + 2}"
+      org               = ""
+      endpoint          = "https://store-pod-saas-gateway-${i + 2}.${data.aws_route53_zone.domain_zone.name}"
+      namespace         = "store-pod-${i + 2}.${var.project}.lcl"
+      size              = local.pod_size
+      endpointType      = "EXTERNAL"
     }
   }
   default_pod = {
-    index        = 0
-    id           = "507f1f77bcf86cd799439011"
-    name         = "pod-${1}"
-    org          = ""
-    endpoint     = "https://store-pod-saas-gateway-${1}.${data.aws_route53_zone.domain_zone.name}"
-    namespace    = "store-pod-${1}.${var.project}.lcl"
-    size         = local.pod_size
-    endpointType = "EXTERNAL"
+    index             = 0
+    id                = "507f1f77bcf86cd799439011"
+    shorten_pod_id    = substr("507f1f77bcf86cd799439011", 0, 15)
+    pod_record_prefix = "spg-${substr("507f1f77bcf86cd799439011", 0, 15)}"
+    name              = "pod-${1}"
+    org               = ""
+    endpoint          = "https://store-pod-saas-gateway-${1}.${data.aws_route53_zone.domain_zone.name}"
+    namespace         = "store-pod-${1}.${var.project}.lcl"
+    size              = local.pod_size
+    endpointType      = "EXTERNAL"
   }
   all_pods = merge(local.extra_pods, {
     "pod-1" : local.default_pod
