@@ -5,7 +5,7 @@ locals {
       { name : "COM_ASREVO_CVHOME_PODS[${value.index}]_NAME", value : value.name },
       { name : "COM_ASREVO_CVHOME_PODS[${value.index}]_ENDPOINT_ENDPOINT", value : value.endpoint },
       { name : "COM_ASREVO_CVHOME_PODS[${value.index}]_ENDPOINT_ENDPOINT-TYPE", value : value.endpointType },
-      { name : "COM_ASREVO_CVHOME_PODS[${value.index}]_ORG-ID", value : value.org },
+      # { name : "COM_ASREVO_CVHOME_PODS[${value.index}]_ORG-ID", value : value.org },
     ]
   ])
   store_core_gateway_env = [
