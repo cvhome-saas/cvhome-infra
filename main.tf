@@ -2,6 +2,11 @@ provider "aws" {
   region = var.region
 }
 
+resource "random_id" "pod_id" {
+  for_each    = { for i in range(local.pod_count) : "pod-${i + 2}" => i }
+  byte_length = 12
+}
+
 data "aws_caller_identity" "current" {}
 
 data "aws_route53_zone" "domain_zone" {
@@ -24,7 +29,7 @@ locals {
   extra_pods = {
     for i in range(local.pod_count) : "pod-${i + 2}" => {
       index        = i + 1
-      id           = tostring(i + 2)
+      id           = random_id.pod_id["pod-${i + 2}"].hex
       name         = "pod-${i + 2}"
       org          = ""
       endpoint     = "https://store-pod-saas-gateway-${i + 2}.${data.aws_route53_zone.domain_zone.name}"
@@ -35,7 +40,7 @@ locals {
   }
   default_pod = {
     index        = 0
-    id           = tostring(1)
+    id           = "507f1f77bcf86cd799439011"
     name         = "pod-${1}"
     org          = ""
     endpoint     = "https://store-pod-saas-gateway-${1}.${data.aws_route53_zone.domain_zone.name}"
@@ -73,7 +78,7 @@ module "store-core" {
 }
 
 module "store-pod" {
-  source           = "git::https://github.com/cvhome-saas/cvhome-store-pod.git?ref=main"
+  source           = "git::https://github.com/cvhome-saas/cvhome-store-pod.git?ref=feat/dynamic-pod"
   vpc_id           = module.vpc.vpc_id
   public_subnets   = module.vpc.public_subnets
   private_subnets  = module.vpc.private_subnets
