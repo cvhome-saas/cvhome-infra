@@ -30,13 +30,13 @@ locals {
     for k, v in random_id.pod_id :
     k => {
       id         = v.hex
-      shorten_id = substr(v.hex, 0, 15)
+      shorten_id = substr(v.hex, 0, 8)
     }
   }
   default_pods_id = {
     "pod-1" = {
       id         = "507f1f77bcf86cd799439011"
-      shorten_id = substr("507f1f77bcf86cd799439011", 0, 15)
+      shorten_id = substr("507f1f77bcf86cd799439011", 0, 8)
     }
   }
   extra_pods = {
