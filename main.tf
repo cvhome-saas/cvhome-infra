@@ -13,6 +13,11 @@ data "aws_acm_certificate" "certificate" {
   statuses = ["ISSUED"]
 }
 
+resource "random_id" "pod_id" {
+  for_each    = { for i in range(local.pod_count) : "pod-${i + 2}" => i }
+  byte_length = 12
+}
+
 locals {
   store_core_namespace = "store-core.${var.project}.lcl"
   tags = {
@@ -21,27 +26,44 @@ locals {
     Environment = local.env
   }
   docker_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.project}"
+  extra_pods_id = {
+    for k, v in random_id.pod_id :
+    k => {
+      id         = v.hex
+      shorten_id = substr(v.hex, 0, 8)
+    }
+  }
+  default_pods_id = {
+    "pod-1" = {
+      id         = "507f1f77bcf86cd799439011"
+      shorten_id = substr("507f1f77bcf86cd799439011", 0, 8)
+    }
+  }
   extra_pods = {
     for i in range(local.pod_count) : "pod-${i + 2}" => {
-      index        = i + 1
-      id           = tostring(i + 2)
-      name         = "pod-${i + 2}"
-      org          = ""
-      endpoint     = "https://store-pod-saas-gateway-${i + 2}.${data.aws_route53_zone.domain_zone.name}"
-      namespace    = "store-pod-${i + 2}.${var.project}.lcl"
-      size         = local.pod_size
-      endpointType = "EXTERNAL"
+      index             = i + 1
+      id                = local.extra_pods_id["pod-${i + 2}"].id
+      shorten_pod_id    = local.extra_pods_id["pod-${i + 2}"].shorten_id
+      pod_record_prefix = "spg-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}"
+      name              = "pod-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}"
+      org               = ""
+      endpoint          = "https://spg-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}.${data.aws_route53_zone.domain_zone.name}"
+      namespace         = "store-pod-${local.extra_pods_id[format("pod-%d", i + 2)].shorten_id}.${var.project}.lcl"
+      size              = local.pod_size
+      endpointType      = "EXTERNAL"
     }
   }
   default_pod = {
-    index        = 0
-    id           = tostring(1)
-    name         = "pod-${1}"
-    org          = ""
-    endpoint     = "https://store-pod-saas-gateway-${1}.${data.aws_route53_zone.domain_zone.name}"
-    namespace    = "store-pod-${1}.${var.project}.lcl"
-    size         = local.pod_size
-    endpointType = "EXTERNAL"
+    index             = 0
+    id                = local.default_pods_id["pod-1"].id
+    shorten_pod_id    = local.default_pods_id["pod-1"].shorten_id
+    pod_record_prefix = "spg-${local.default_pods_id["pod-1"].shorten_id}"
+    name              = "pod-${local.default_pods_id["pod-1"].shorten_id}"
+    org               = ""
+    endpoint          = "https://spg-${local.default_pods_id["pod-1"].shorten_id}.${data.aws_route53_zone.domain_zone.name}"
+    namespace         = "store-pod-${local.default_pods_id["pod-1"].shorten_id}.${var.project}.lcl"
+    size              = local.pod_size
+    endpointType      = "EXTERNAL"
   }
   all_pods = merge(local.extra_pods, {
     "pod-1" : local.default_pod
