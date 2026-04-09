@@ -36,6 +36,13 @@ locals {
     }
   }
 
+  default_pods_id = {
+    "pod-1" = {
+      id         = "507f1f77bcf86cd799439011"
+      shorten_id = substr("507f1f77bcf86cd799439011", 0, 8)
+    }
+  }
+
   default_pod = {
     index             = 0
     id                = local.default_pods_id["pod-1"].id
